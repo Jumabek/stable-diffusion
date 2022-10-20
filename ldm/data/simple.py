@@ -111,6 +111,36 @@ class FolderData(Dataset):
         im = im.convert("RGB")
         return self.tform(im)
 
+
+
+def juma_dataset(
+    image_transforms=[],
+    image_column="image",
+    text_column="text",
+    image_key='image',
+    caption_key='txt',
+    ):
+    """Make local dataset with appropriate list of transforms applied on Lambda Cloud
+    """
+    # compose image transforms
+    image_transforms = [instantiate_from_config(tt) for tt in image_transforms]
+    image_transforms.extend([
+        transforms.ToTensor()
+        ,transforms.Lambda(lambda x: rearrange(x * 2. - 1., 'c h w -> h w c'))
+    ])
+    tform = transforms.Compose(image_transforms)
+    
+    examples = load_dataset(
+        "imagefolder", data_dir='/home/ubuntu/ideal_images'
+        , split="train"
+    )
+
+    processed = {}
+    processed[image_key] = [tform(im) for im in examples[image_column]]
+    processed[caption_key] = examples[text_column]
+    return processed
+
+
 def hf_dataset(
     name,
     image_transforms=[],
