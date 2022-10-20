@@ -113,7 +113,8 @@ class FolderData(Dataset):
 
 
 
-def juma_dataset(
+def local_dataset(
+    data_dir='./my-dataset/ideal_images',
     image_transforms=[],
     image_column="image",
     text_column="text",
@@ -130,15 +131,20 @@ def juma_dataset(
     ])
     tform = transforms.Compose(image_transforms)
     
-    examples = load_dataset(
-        "imagefolder", data_dir='/home/ubuntu/ideal_images'
+    ds = load_dataset(
+        "imagefolder", data_dir=data_dir
         , split="train"
     )
+    print(f"Loaded dataset of size {len(ds)}")
 
-    processed = {}
-    processed[image_key] = [tform(im) for im in examples[image_column]]
-    processed[caption_key] = examples[text_column]
-    return processed
+    def pre_process(examples):
+        processed = {}
+        processed[image_key] = [tform(im) for im in examples[image_column]]
+        processed[caption_key] = examples[text_column]
+        return processed
+
+    ds.set_transform(pre_process)
+    return ds
 
 
 def hf_dataset(
@@ -171,7 +177,10 @@ def hf_dataset(
     return ds
 
 class TextOnly(Dataset):
-    def __init__(self, captions, output_size, image_key="image", caption_key="txt", n_gpus=1):
+    def __init__(
+        self, captions, output_size, image_key="image"
+        , caption_key="txt", n_gpus=1
+    ):
         """Returns only captions with dummy images"""
         self.output_size = output_size
         self.image_key = image_key
@@ -193,7 +202,10 @@ class TextOnly(Dataset):
     def __getitem__(self, index):
         dummy_im = torch.zeros(3, self.output_size, self.output_size)
         dummy_im = rearrange(dummy_im * 2. - 1., 'c h w -> h w c')
-        return {self.image_key: dummy_im, self.caption_key: self.captions[index]}
+        return {
+            self.image_key: dummy_im
+            , self.caption_key: self.captions[index]
+        }
 
     def _load_caption_file(self, filename):
         with open(filename, 'rt') as f:
