@@ -76,7 +76,7 @@ data:
     num_workers: 4
     num_val_workers: 0 # Avoid a weird val dataloader issue
     train:
-      target: ldm.data.simple.juma_dataset
+      target: ldm.data.simple.local_dataset
       params:
         image_transforms:
         - target: torchvision.transforms.Resize
@@ -91,10 +91,10 @@ data:
       target: ldm.data.simple.TextOnly
       params:
         captions:
-        - "NFT portrait of Lawyer AI"
-        - "NFT portrait of Abraham Lincoln"
-        - "NFT portrait of Sergey Nazarov"
-        - "NFT portrait of Imaginary Person"
+        - "Barack Obama in Office"
+        - "Ironman flying"
+        - "Elon Musk next to Tesla"
+        - "NFT portrait of Angela Merkel"
         output_size: 512
         n_gpus: 2 # small hack to sure we see all our samples
 
